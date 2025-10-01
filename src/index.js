@@ -16,6 +16,7 @@ function mapRowToGalleryItem(row) {
     capDesc: row.UnitLocation || "",
     ServiceID: row.ServiceID || "",
     RECID: row.RECID || "",
+    ClientID: row.ClientID || "",
   };
 }
 

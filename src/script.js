@@ -350,6 +350,7 @@ function updateActiveThumbnail() {
 function updateImageInfo() {
   const infoItems = document.querySelectorAll(".info-item");
   const item = galleryData[currentImage] || {};
+  //   console.log("infoItems: ", infoItems);
 
   // Info slot 0 -> Unit Serial Number
   if (infoItems[0]) {
@@ -363,10 +364,16 @@ function updateImageInfo() {
     infoItems[1].innerHTML = `<span>Unit Location:</span> ${itemDesc}`;
   }
 
-  // Info slot 2 -> ClientID
+  // Info slot 2 -> ServiceID
   if (infoItems[2]) {
     const itemServiceID = item.ServiceID ? item.ServiceID : "";
     infoItems[2].innerHTML = `<span>REC ID:</span>  ${itemServiceID}`;
+  }
+
+  // Info slot 3 -> ClientID
+  if (infoItems[3]) {
+    const itemClientID = item.ClientID ? item.ClientID : "";
+    infoItems[3].innerHTML = `<span>Client ID:</span>  ${itemClientID}`;
   }
 }
 
