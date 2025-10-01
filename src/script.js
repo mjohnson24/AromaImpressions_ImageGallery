@@ -715,18 +715,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Also retry thumbnail navigation buttons
     setTimeout(() => {
-      console.log("Retrying thumbnail navigation button setup...");
       const firstBtn = document.querySelector(".thumbnail-nav-first");
       const leftBtn = document.querySelector(".thumbnail-nav-left");
       const rightBtn = document.querySelector(".thumbnail-nav-right");
       const lastBtn = document.querySelector(".thumbnail-nav-last");
-
-      console.log("Retry - Thumbnail nav buttons found:", {
-        first: firstBtn,
-        left: leftBtn,
-        right: rightBtn,
-        last: lastBtn,
-      });
 
       if (firstBtn && !firstBtn.hasAttribute("data-listener-added")) {
         // Ensure button is clickable
