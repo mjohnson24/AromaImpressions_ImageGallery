@@ -23,6 +23,38 @@ body {
   align-items: center;
 }
 
+.export-btn {
+  position: absolute;
+  top: 20px;
+  right: 70px; /* Position next to close button */
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+  z-index: 1001;
+}
+
+.export-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.export-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.context-menu {
+  user-select: none;
+}
+
 /* Close button */
 .close-btn {
   position: absolute;
@@ -304,4 +336,8 @@ body {
 #errorMessage {
   padding-bottom: 50px;
   color: maroon;
+}
+
+.context-menu {
+  user-select: none;
 }

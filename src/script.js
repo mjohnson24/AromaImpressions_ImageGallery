@@ -40,10 +40,38 @@ export function setGalleryData(data) {
 }
 
 function setupEventListeners() {
-  //   Close button
-  document.querySelector(".close-btn").addEventListener("click", () => {
-    closeGallery();
-  });
+  // Export button
+  const exportButton = document.querySelector(".export-btn");
+  console.log("Looking for export button...", exportButton);
+  if (exportButton) {
+    console.log("Export button found, adding event listener");
+    exportButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Export button clicked!");
+      exportCurrentImage();
+    });
+
+    // Test if button is clickable
+    exportButton.style.pointerEvents = "auto";
+    exportButton.style.zIndex = "1001";
+  } else {
+    console.log("Export button not found in DOM");
+    // Try to find it by searching all buttons
+    const allButtons = document.querySelectorAll("button");
+    console.log("All buttons found:", allButtons.length);
+    allButtons.forEach((btn, index) => {
+      console.log(`Button ${index}:`, btn.className, btn.id);
+    });
+  }
+
+  // Close button
+  const closeButton = document.querySelector(".close-btn");
+  if (closeButton) {
+    closeButton.addEventListener("click", () => {
+      closeGallery();
+    });
+  }
 
   // Navigation arrows
   navArrowLeft.addEventListener("click", () => {
@@ -54,7 +82,7 @@ function setupEventListeners() {
     nextImage();
   });
 
-  // Thumbnail navigation - same as main image navigation
+  // Thumbnail navigation - corrected to use proper scroll functions
   const firstThumbnailBtn = document.querySelector(".thumbnail-nav-first");
   const leftThumbnailBtn = document.querySelector(".thumbnail-nav-left");
   const rightThumbnailBtn = document.querySelector(".thumbnail-nav-right");
@@ -68,13 +96,13 @@ function setupEventListeners() {
 
   if (leftThumbnailBtn) {
     leftThumbnailBtn.addEventListener("click", () => {
-      previousImage();
+      scrollThumbnailsLeft();
     });
   }
 
   if (rightThumbnailBtn) {
     rightThumbnailBtn.addEventListener("click", () => {
-      nextImage();
+      scrollThumbnailsRight();
     });
   }
 
@@ -84,18 +112,101 @@ function setupEventListeners() {
     });
   }
 
+  // Right-click context menu on main image
+  const mainImage = document.querySelector("#main-image");
+  if (mainImage) {
+    mainImage.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+
+      // Only show context menu if we have an image
+      if (galleryData.length === 0) return;
+
+      // Create context menu
+      const contextMenu = document.createElement("div");
+      contextMenu.className = "context-menu";
+      contextMenu.style.cssText = `
+        position: fixed;
+        top: ${e.clientY}px;
+        left: ${e.clientX}px;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 1002;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      `;
+
+      const exportOption = document.createElement("div");
+      exportOption.textContent = "Download Image";
+      exportOption.style.cssText = `
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+      `;
+
+      exportOption.addEventListener("click", () => {
+        exportCurrentImage();
+        document.body.removeChild(contextMenu);
+      });
+
+      exportOption.addEventListener("mouseenter", () => {
+        exportOption.style.backgroundColor = "#f0f0f0";
+      });
+
+      exportOption.addEventListener("mouseleave", () => {
+        exportOption.style.backgroundColor = "transparent";
+      });
+
+      contextMenu.appendChild(exportOption);
+      document.body.appendChild(contextMenu);
+
+      // Remove context menu when clicking elsewhere
+      const removeMenu = (event) => {
+        if (!contextMenu.contains(event.target)) {
+          document.body.removeChild(contextMenu);
+          document.removeEventListener("click", removeMenu);
+        }
+      };
+
+      setTimeout(() => {
+        document.addEventListener("click", removeMenu);
+      }, 10);
+    });
+  }
+
   // Keyboard navigation
   document.addEventListener("keydown", (e) => {
     switch (e.key) {
       case "ArrowLeft":
+        e.preventDefault();
         previousImage();
         break;
       case "ArrowRight":
+        e.preventDefault();
         nextImage();
         break;
-      //   case "Escape":
-      //     closeGallery();
-      //     break;
+      case "Home":
+        e.preventDefault();
+        firstImage();
+        break;
+      case "End":
+        e.preventDefault();
+        lastImage();
+        break;
+      case "Escape":
+        e.preventDefault();
+        closeGallery();
+        break;
+      case "s":
+      case "S":
+        if (e.ctrlKey || e.metaKey) {
+          // Ctrl+S or Cmd+S
+          e.preventDefault();
+          exportCurrentImage();
+        }
+        break;
     }
   });
 }
@@ -405,7 +516,186 @@ function closeGallery() {
   }
 }
 
+// Add this function to handle image export
+function exportCurrentImage() {
+  console.log("Export button clicked"); // Debug log
+  console.log("Gallery data length:", galleryData.length);
+  console.log("Current image index:", currentImage);
+
+  if (galleryData.length === 0) {
+    console.log("No gallery data available");
+    alert("No images to export");
+    return;
+  }
+
+  const currentItem = galleryData[currentImage];
+  console.log("Current item:", currentItem);
+
+  if (!currentItem || !currentItem.src) {
+    console.log("No current item or src available", currentItem);
+    alert("No image to export");
+    return;
+  }
+
+  try {
+    console.log("Attempting to export image:", currentItem.src.substring(0, 50) + "...");
+
+    // Generate filename from image info
+    const serial = currentItem.title || "image";
+    const serviceId = currentItem.ServiceID || "";
+
+    // Create very simple filename to avoid FileMaker issues
+    let filename = `${serial}`;
+    if (serviceId) filename += `_${serviceId}`;
+    filename += ".jpg";
+
+    // Ultra-aggressive filename cleaning for FileMaker compatibility
+    filename = filename.replace(/[^a-zA-Z0-9]/g, "_"); // Replace ALL non-alphanumeric with underscore
+    filename = filename.replace(/_{2,}/g, "_"); // Replace multiple underscores with single
+    filename = filename.replace(/^_+|_+$/g, ""); // Remove leading/trailing underscores
+    filename = filename.replace(/_\.jpg$/, ".jpg"); // Fix underscore before extension
+
+    // Ensure it ends with .jpg
+    if (!filename.endsWith(".jpg")) {
+      filename += ".jpg";
+    }
+
+    // Limit to very short length for FileMaker
+    if (filename.length > 30) {
+      const nameWithoutExt = filename.substring(0, filename.lastIndexOf("."));
+      filename = nameWithoutExt.substring(0, 26) + ".jpg";
+    }
+
+    console.log("Generated filename:", filename);
+
+    // Try direct data URL download first (most compatible with FileMaker)
+    if (currentItem.src.startsWith("data:")) {
+      console.log("Using FileMaker script method for export");
+
+      // Try to use FileMaker script for export (most reliable in FileMaker environment)
+      if (window.FileMaker && typeof window.FileMaker.PerformScript === "function") {
+        try {
+          console.log("Calling FileMaker export script");
+
+          // Pass the image data to FileMaker for native handling
+          const exportData = {
+            filename: filename,
+            base64Data: currentItem.src.split(",")[1], // Just the base64 part
+            mimeType: currentItem.src.split(",")[0].split(":")[1].split(";")[0],
+            title: currentItem.title || "",
+            location: currentItem.capDesc || "",
+            serviceId: currentItem.ServiceID || "",
+            originalDataURL: currentItem.src,
+          };
+
+          // Call FileMaker script to handle the export
+          window.FileMaker.PerformScript("Export Image to Desktop", JSON.stringify(exportData));
+          console.log("FileMaker export script called successfully");
+
+          return; // Exit early since FileMaker will handle it
+        } catch (fmError) {
+          console.error("FileMaker script failed:", fmError);
+
+          alert(instructions);
+          console.log("FileMaker export script not found, showing setup instructions");
+        }
+      } else {
+        console.log("FileMaker not available, trying browser method");
+      }
+
+      // Fallback: Simple browser method (usually fails in FileMaker web viewer)
+      console.log("Attempting browser download (may not work in FileMaker)");
+      alert(`Download not available in FileMaker web viewer.\n\nTo enable image downloads, ask your FileMaker developer to create a script called:\n"Export Image to Desktop"\n\nFilename would be: ${filename}`);
+    } else {
+      console.log("Using URL download method");
+
+      // For regular URLs
+      const link = document.createElement("a");
+      link.href = currentItem.src;
+      link.download = filename;
+      link.setAttribute("target", "_blank");
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      console.log(`URL download attempted for: ${filename}`);
+    }
+
+    console.log("Export process completed");
+  } catch (error) {
+    console.error("Export failed:", error);
+
+    // Final fallback - open image in new window
+    try {
+      console.log("Opening image in new window as final fallback");
+      const newWindow = window.open(currentItem.src, "_blank");
+      if (!newWindow) {
+        console.log("Pop-up blocked or failed to open new window");
+      }
+    } catch (fallbackError) {
+      console.error("All download methods failed:", fallbackError);
+    }
+  }
+}
+
 // Initialize the gallery when the page loads
 document.addEventListener("DOMContentLoaded", () => {
-  initGallery();
+  console.log("DOM loaded, initializing gallery...");
+
+  // Add a small delay to ensure everything is rendered
+  setTimeout(() => {
+    initGallery();
+
+    // Double-check export button setup
+    const exportBtn = document.querySelector(".export-btn");
+    console.log("Export button check after init:", exportBtn);
+
+    if (!exportBtn) {
+      console.error("Export button still not found after DOM load!");
+      // Try to find it manually
+      setTimeout(() => {
+        const exportBtnRetry = document.querySelector(".export-btn");
+        console.log("Retry finding export button:", exportBtnRetry);
+        if (exportBtnRetry) {
+          console.log("Found export button on retry, setting up listener");
+          exportBtnRetry.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("Export button clicked (retry setup)!");
+            exportCurrentImage();
+          });
+        }
+      }, 1000);
+    }
+  }, 100);
 });
+
+// Make export function available globally for testing
+window.testExport = exportCurrentImage;
+
+// Manual setup function for debugging
+window.setupExportButton = function () {
+  console.log("Manual export button setup...");
+  const btn = document.querySelector(".export-btn");
+  console.log("Found button:", btn);
+
+  if (btn) {
+    // Remove any existing listeners
+    btn.replaceWith(btn.cloneNode(true));
+    const newBtn = document.querySelector(".export-btn");
+
+    newBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Manual export button clicked!");
+      exportCurrentImage();
+    });
+
+    console.log("Manual export button setup complete");
+    return "Export button setup successfully";
+  } else {
+    console.log("Export button not found in manual setup");
+    return "Export button not found";
+  }
+};
