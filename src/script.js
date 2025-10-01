@@ -42,46 +42,30 @@ export function setGalleryData(data) {
 function setupEventListeners() {
   // Export button
   const exportButton = document.querySelector(".export-btn");
-  console.log("Looking for export button...", exportButton);
   if (exportButton) {
-    console.log("Export button found, adding event listener");
     exportButton.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log("Export button clicked!");
       exportCurrentImage();
     });
 
     // Test if button is clickable
     exportButton.style.pointerEvents = "auto";
     exportButton.style.zIndex = "1001";
-  } else {
-    console.log("Export button not found in DOM");
-    // Try to find it by searching all buttons
-    const allButtons = document.querySelectorAll("button");
-    console.log("All buttons found:", allButtons.length);
-    allButtons.forEach((btn, index) => {
-      console.log(`Button ${index}:`, btn.className, btn.id);
-    });
   }
 
   // Delete button
   const deleteButton = document.querySelector(".delete-btn");
-  console.log("Looking for delete button...", deleteButton);
   if (deleteButton) {
-    console.log("Delete button found, adding event listener");
     deleteButton.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log("Delete button clicked!");
       deleteCurrentImage();
     });
 
     // Test if button is clickable
     deleteButton.style.pointerEvents = "auto";
     deleteButton.style.zIndex = "1001";
-  } else {
-    console.log("Delete button not found in DOM");
   }
 
   // Close button
@@ -101,7 +85,7 @@ function setupEventListeners() {
     nextImage();
   });
 
-  // Thumbnail navigation - corrected to use proper scroll functions
+  // Thumbnail navigation - simple and working version
   const firstThumbnailBtn = document.querySelector(".thumbnail-nav-first");
   const leftThumbnailBtn = document.querySelector(".thumbnail-nav-left");
   const rightThumbnailBtn = document.querySelector(".thumbnail-nav-right");
@@ -115,13 +99,13 @@ function setupEventListeners() {
 
   if (leftThumbnailBtn) {
     leftThumbnailBtn.addEventListener("click", () => {
-      scrollThumbnailsLeft();
+      previousImage();
     });
   }
 
   if (rightThumbnailBtn) {
     rightThumbnailBtn.addEventListener("click", () => {
-      scrollThumbnailsRight();
+      nextImage();
     });
   }
 
@@ -305,25 +289,6 @@ function updateGallery() {
   ensureActiveThumbnailVisible();
 }
 
-// function updateMainImageBackground() {
-//   const imagePlaceholder = document.querySelector("#main-image");
-//   if (imagePlaceholder) {
-//     // Use galleryData item as background if available, otherwise fallback to a neutral color
-//     const item = galleryData[currentImage];
-//     if (item && (item.src || item.thumb)) {
-//       const imageURL = item.src || item.thumb;
-//       // set as background image and ensure it covers the placeholder
-//       imagePlaceholder.src = imageURL;
-//       imagePlaceholder.style.backgroundSize = "cover";
-//       imagePlaceholder.style.backgroundPosition = "center";
-//       imagePlaceholder.style.backgroundColor = "transparent";
-//     } else {
-//       imagePlaceholder.style.backgroundImage = "";
-//       imagePlaceholder.style.backgroundColor = "#eee";
-//     }
-//   }
-// }
-
 function updateMainImageBackground() {
   const imagePlaceholder = document.querySelector("#main-image");
   if (!imagePlaceholder) return;
@@ -385,23 +350,19 @@ function updateActiveThumbnail() {
 function updateImageInfo() {
   const infoItems = document.querySelectorAll(".info-item");
   const item = galleryData[currentImage] || {};
-  //   console.log("infoItems", infoItems);
-  //   console.log("Updating item", item);
+
   // Info slot 0 -> Unit Serial Number
   if (infoItems[0]) {
     const itemTitle = item.title ? item.title : "";
     infoItems[0].innerHTML = `<span>Unit Serial Number:</span> ${itemTitle}`;
   }
+
   // Info slot 1 -> Description
   if (infoItems[1]) {
     const itemDesc = item.capDesc ? item.capDesc : "";
     infoItems[1].innerHTML = `<span>Unit Location:</span> ${itemDesc}`;
   }
-  // Info slot 2 -> ClientID
-  //   if (infoItems[2]) {
-  //     const itemClientID = item.clientID ? item.clientID : "";
-  //     infoItems[2].innerHTML = `<span>Client ID:</span>  ${itemClientID}`;
-  // 	}
+
   // Info slot 2 -> ClientID
   if (infoItems[2]) {
     const itemServiceID = item.ServiceID ? item.ServiceID : "";
@@ -508,7 +469,7 @@ function scrollThumbnailsLeft() {
 }
 
 function scrollThumbnailsRight() {
-  const maxScrollPosition = totalImages - visibleThumbnails;
+  const maxScrollPosition = Math.max(0, totalImages - visibleThumbnails);
   if (thumbnailScrollPosition < maxScrollPosition) {
     thumbnailScrollPosition = Math.min(maxScrollPosition, thumbnailScrollPosition + visibleThumbnails);
     updateThumbnailDisplay();
@@ -555,50 +516,36 @@ function callFMScript(scriptName, param) {
 }
 
 function closeGallery() {
-  console.log("Gallery closed");
   // Change this to your receiving FM script name:
   const ok = callFMScript("UNIV: Committ/Close Window/Exit", "");
 
   if (!ok) {
-    alert("Could not call FileMaker script.");
     return;
   }
 }
 
 // Add this function to handle image deletion
 function deleteCurrentImage() {
-  console.log("Delete button clicked");
-  console.log("Gallery data length:", galleryData.length);
-  console.log("Current image index:", currentImage);
-
   if (galleryData.length === 0) {
-    console.log("No gallery data available");
-    alert("No images to delete");
     return;
   }
 
   const currentItem = galleryData[currentImage];
-  console.log("Current item:", currentItem);
 
   if (!currentItem || !currentItem.RECID) {
-    console.log("No current item or RECID available", currentItem);
-    alert("No valid image to delete - missing record ID");
     return;
   }
 
   // Show confirmation dialog
   const serial = currentItem.title || "Unknown";
   const location = currentItem.capDesc || "Unknown location";
-  const confirmMessage = `Are you sure you want to delete this image?\n\nUnit Serial: ${serial}\nLocation: ${location}\nRecord ID: ${currentItem.RECID}`;
+  //   const confirmMessage = `Are you sure you want to delete this image?\n\nUnit Serial: ${serial}\nLocation: ${location}\nRecord ID: ${currentItem.RECID}`;
 
-  if (!confirm(confirmMessage)) {
-    console.log("User cancelled deletion");
-    return;
-  }
+  //   if (!confirm(confirmMessage)) {
+  //     return;
+  //   }
 
   try {
-    console.log("Attempting to delete image with RECID:", currentItem.RECID);
-
     // Prepare data to send to FileMaker
     const deleteData = {
       RECID: currentItem.RECID,
@@ -608,60 +555,38 @@ function deleteCurrentImage() {
       action: "delete",
     };
 
-    console.log("Delete data prepared:", deleteData);
-
     // Call FileMaker script to delete the record
     if (window.FileMaker && typeof window.FileMaker.PerformScript === "function") {
       try {
-        console.log("Calling FileMaker delete script");
-
         // Call FileMaker script to handle the deletion
         // You'll need to create this script in FileMaker
         window.FileMaker.PerformScript("Delete Image Record", JSON.stringify(deleteData));
-        console.log("FileMaker delete script called successfully");
-
-        // Optional: Show success message
-        alert(`Image deletion request sent to FileMaker\nRecord ID: ${currentItem.RECID}`);
 
         return;
       } catch (fmError) {
         console.error("FileMaker delete script failed:", fmError);
-        alert(`FileMaker delete script failed: ${fmError.message}\n\nPlease ask your FileMaker developer to create a script called:\n"Delete Image Record"\n\nThat accepts a JSON parameter with RECID for deletion.`);
       }
     } else {
-      console.log("FileMaker not available");
-      alert(`FileMaker integration not available.\n\nTo enable image deletion, ask your FileMaker developer to create a script called:\n"Delete Image Record"\n\nRecord ID to delete: ${currentItem.RECID}`);
+      // FileMaker not available - could show user message
     }
   } catch (error) {
     console.error("Delete operation failed:", error);
-    alert(`Delete operation failed: ${error.message}`);
   }
 }
 
 // Add this function to handle image export
 function exportCurrentImage() {
-  console.log("Export button clicked"); // Debug log
-  console.log("Gallery data length:", galleryData.length);
-  console.log("Current image index:", currentImage);
-
   if (galleryData.length === 0) {
-    console.log("No gallery data available");
-    alert("No images to export");
     return;
   }
 
   const currentItem = galleryData[currentImage];
-  console.log("Current item:", currentItem);
 
   if (!currentItem || !currentItem.src) {
-    console.log("No current item or src available", currentItem);
-    alert("No image to export");
     return;
   }
 
   try {
-    console.log("Attempting to export image:", currentItem.src.substring(0, 50) + "...");
-
     // Generate filename from image info
     const serial = currentItem.title || "image";
     const serviceId = currentItem.ServiceID || "";
@@ -688,17 +613,11 @@ function exportCurrentImage() {
       filename = nameWithoutExt.substring(0, 26) + ".jpg";
     }
 
-    console.log("Generated filename:", filename);
-
     // Try direct data URL download first (most compatible with FileMaker)
     if (currentItem.src.startsWith("data:")) {
-      console.log("Using FileMaker script method for export");
-
       // Try to use FileMaker script for export (most reliable in FileMaker environment)
       if (window.FileMaker && typeof window.FileMaker.PerformScript === "function") {
         try {
-          console.log("Calling FileMaker export script");
-
           // Pass the image data to FileMaker for native handling
           const exportData = {
             filename: filename,
@@ -712,25 +631,16 @@ function exportCurrentImage() {
 
           // Call FileMaker script to handle the export
           window.FileMaker.PerformScript("Export Image to Desktop", JSON.stringify(exportData));
-          console.log("FileMaker export script called successfully");
 
           return; // Exit early since FileMaker will handle it
         } catch (fmError) {
           console.error("FileMaker script failed:", fmError);
-
-          alert(instructions);
           console.log("FileMaker export script not found, showing setup instructions");
         }
       } else {
         console.log("FileMaker not available, trying browser method");
       }
-
-      // Fallback: Simple browser method (usually fails in FileMaker web viewer)
-      console.log("Attempting browser download (may not work in FileMaker)");
-      alert(`Download not available in FileMaker web viewer.\n\nTo enable image downloads, ask your FileMaker developer to create a script called:\n"Export Image to Desktop"\n\nFilename would be: ${filename}`);
     } else {
-      console.log("Using URL download method");
-
       // For regular URLs
       const link = document.createElement("a");
       link.href = currentItem.src;
@@ -740,8 +650,6 @@ function exportCurrentImage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      console.log(`URL download attempted for: ${filename}`);
     }
 
     console.log("Export process completed");
@@ -750,7 +658,6 @@ function exportCurrentImage() {
 
     // Final fallback - open image in new window
     try {
-      console.log("Opening image in new window as final fallback");
       const newWindow = window.open(currentItem.src, "_blank");
       if (!newWindow) {
         console.log("Pop-up blocked or failed to open new window");
@@ -763,8 +670,6 @@ function exportCurrentImage() {
 
 // Initialize the gallery when the page loads
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM loaded, initializing gallery...");
-
   // Add a small delay to ensure everything is rendered
   setTimeout(() => {
     initGallery();
@@ -772,21 +677,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // Double-check export and delete button setup
     const exportBtn = document.querySelector(".export-btn");
     const deleteBtn = document.querySelector(".delete-btn");
-    console.log("Export button check after init:", exportBtn);
-    console.log("Delete button check after init:", deleteBtn);
 
     if (!exportBtn) {
-      console.error("Export button still not found after DOM load!");
       // Try to find it manually
       setTimeout(() => {
         const exportBtnRetry = document.querySelector(".export-btn");
-        console.log("Retry finding export button:", exportBtnRetry);
         if (exportBtnRetry) {
-          console.log("Found export button on retry, setting up listener");
           exportBtnRetry.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log("Export button clicked (retry setup)!");
             exportCurrentImage();
           });
         }
@@ -794,22 +693,86 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!deleteBtn) {
-      console.error("Delete button still not found after DOM load!");
       // Try to find it manually
       setTimeout(() => {
         const deleteBtnRetry = document.querySelector(".delete-btn");
-        console.log("Retry finding delete button:", deleteBtnRetry);
         if (deleteBtnRetry) {
-          console.log("Found delete button on retry, setting up listener");
           deleteBtnRetry.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log("Delete button clicked (retry setup)!");
             deleteCurrentImage();
           });
         }
       }, 1000);
     }
+
+    // Also retry thumbnail navigation buttons
+    setTimeout(() => {
+      console.log("Retrying thumbnail navigation button setup...");
+      const firstBtn = document.querySelector(".thumbnail-nav-first");
+      const leftBtn = document.querySelector(".thumbnail-nav-left");
+      const rightBtn = document.querySelector(".thumbnail-nav-right");
+      const lastBtn = document.querySelector(".thumbnail-nav-last");
+
+      console.log("Retry - Thumbnail nav buttons found:", {
+        first: firstBtn,
+        left: leftBtn,
+        right: rightBtn,
+        last: lastBtn,
+      });
+
+      if (firstBtn && !firstBtn.hasAttribute("data-listener-added")) {
+        // Ensure button is clickable
+        firstBtn.style.pointerEvents = "auto";
+        firstBtn.style.zIndex = "100";
+
+        firstBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          firstThumbnailPage();
+        });
+        firstBtn.setAttribute("data-listener-added", "true");
+      }
+
+      if (leftBtn && !leftBtn.hasAttribute("data-listener-added")) {
+        // Ensure button is clickable
+        leftBtn.style.pointerEvents = "auto";
+        leftBtn.style.zIndex = "100";
+
+        leftBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          scrollThumbnailsLeft();
+        });
+        leftBtn.setAttribute("data-listener-added", "true");
+      }
+
+      if (rightBtn && !rightBtn.hasAttribute("data-listener-added")) {
+        // Ensure button is clickable
+        rightBtn.style.pointerEvents = "auto";
+        rightBtn.style.zIndex = "100";
+
+        rightBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          scrollThumbnailsRight();
+        });
+        rightBtn.setAttribute("data-listener-added", "true");
+      }
+
+      if (lastBtn && !lastBtn.hasAttribute("data-listener-added")) {
+        // Ensure button is clickable
+        lastBtn.style.pointerEvents = "auto";
+        lastBtn.style.zIndex = "100";
+
+        lastBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          lastThumbnailPage();
+        });
+        lastBtn.setAttribute("data-listener-added", "true");
+      }
+    }, 1500);
   }, 100);
 });
 
@@ -819,9 +782,7 @@ window.testDelete = deleteCurrentImage;
 
 // Manual setup function for debugging
 window.setupExportButton = function () {
-  console.log("Manual export button setup...");
   const btn = document.querySelector(".export-btn");
-  console.log("Found button:", btn);
 
   if (btn) {
     // Remove any existing listeners
@@ -831,23 +792,18 @@ window.setupExportButton = function () {
     newBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log("Manual export button clicked!");
       exportCurrentImage();
     });
 
-    console.log("Manual export button setup complete");
     return "Export button setup successfully";
   } else {
-    console.log("Export button not found in manual setup");
     return "Export button not found";
   }
 };
 
 // Manual setup function for delete button
 window.setupDeleteButton = function () {
-  console.log("Manual delete button setup...");
   const btn = document.querySelector(".delete-btn");
-  console.log("Found delete button:", btn);
 
   if (btn) {
     // Remove any existing listeners
@@ -857,14 +813,108 @@ window.setupDeleteButton = function () {
     newBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log("Manual delete button clicked!");
       deleteCurrentImage();
     });
 
-    console.log("Manual delete button setup complete");
     return "Delete button setup successfully";
   } else {
-    console.log("Delete button not found in manual setup");
     return "Delete button not found";
   }
+};
+
+// Manual thumbnail navigation testing functions
+window.testThumbnailFirst = function () {
+  firstThumbnailPage();
+  return "First thumbnail test executed";
+};
+
+window.testThumbnailLeft = function () {
+  scrollThumbnailsLeft();
+  return "Left thumbnail test executed";
+};
+
+window.testThumbnailRight = function () {
+  scrollThumbnailsRight();
+  return "Right thumbnail test executed";
+};
+
+window.testThumbnailLast = function () {
+  lastThumbnailPage();
+  return "Last thumbnail test executed";
+};
+
+// Function to manually trigger button clicks
+window.testButtonClicks = function () {
+  const firstBtn = document.querySelector(".thumbnail-nav-first");
+  const leftBtn = document.querySelector(".thumbnail-nav-left");
+  const rightBtn = document.querySelector(".thumbnail-nav-right");
+  const lastBtn = document.querySelector(".thumbnail-nav-last");
+
+  console.log("Found buttons:", {
+    first: !!firstBtn,
+    left: !!leftBtn,
+    right: !!rightBtn,
+    last: !!lastBtn,
+  });
+
+  if (leftBtn) {
+    leftBtn.click();
+  }
+
+  if (rightBtn) {
+    rightBtn.click();
+  }
+
+  return "Manual button click tests completed";
+};
+
+// Force setup thumbnail navigation buttons
+window.forceSetupThumbnailButtons = function () {
+  const firstBtn = document.querySelector(".thumbnail-nav-first");
+  const leftBtn = document.querySelector(".thumbnail-nav-left");
+  const rightBtn = document.querySelector(".thumbnail-nav-right");
+  const lastBtn = document.querySelector(".thumbnail-nav-last");
+
+  // Remove any existing listeners and add new ones
+  if (firstBtn) {
+    const newFirstBtn = firstBtn.cloneNode(true);
+    firstBtn.parentNode.replaceChild(newFirstBtn, firstBtn);
+    newFirstBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      firstThumbnailPage();
+    });
+  }
+
+  if (leftBtn) {
+    const newLeftBtn = leftBtn.cloneNode(true);
+    leftBtn.parentNode.replaceChild(newLeftBtn, leftBtn);
+    newLeftBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      scrollThumbnailsLeft();
+    });
+  }
+
+  if (rightBtn) {
+    const newRightBtn = rightBtn.cloneNode(true);
+    rightBtn.parentNode.replaceChild(newRightBtn, rightBtn);
+    newRightBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      scrollThumbnailsRight();
+    });
+  }
+
+  if (lastBtn) {
+    const newLastBtn = lastBtn.cloneNode(true);
+    lastBtn.parentNode.replaceChild(newLastBtn, lastBtn);
+    newLastBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      lastThumbnailPage();
+    });
+  }
+
+  return "Force thumbnail button setup completed";
 };
