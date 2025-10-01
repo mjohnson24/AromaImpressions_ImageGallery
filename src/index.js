@@ -15,6 +15,7 @@ function mapRowToGalleryItem(row) {
     title: row.UnitSerial || "",
     capDesc: row.UnitLocation || "",
     ServiceID: row.ServiceID || "",
+    RECID: row.RECID || "",
   };
 }
 

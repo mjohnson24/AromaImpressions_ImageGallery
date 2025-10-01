@@ -65,6 +65,25 @@ function setupEventListeners() {
     });
   }
 
+  // Delete button
+  const deleteButton = document.querySelector(".delete-btn");
+  console.log("Looking for delete button...", deleteButton);
+  if (deleteButton) {
+    console.log("Delete button found, adding event listener");
+    deleteButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Delete button clicked!");
+      deleteCurrentImage();
+    });
+
+    // Test if button is clickable
+    deleteButton.style.pointerEvents = "auto";
+    deleteButton.style.zIndex = "1001";
+  } else {
+    console.log("Delete button not found in DOM");
+  }
+
   // Close button
   const closeButton = document.querySelector(".close-btn");
   if (closeButton) {
@@ -144,6 +163,7 @@ function setupEventListeners() {
         cursor: pointer;
         font-size: 14px;
         transition: background-color 0.2s ease;
+        border-bottom: 1px solid #eee;
       `;
 
       exportOption.addEventListener("click", () => {
@@ -159,7 +179,31 @@ function setupEventListeners() {
         exportOption.style.backgroundColor = "transparent";
       });
 
+      const deleteOption = document.createElement("div");
+      deleteOption.textContent = "Delete Image";
+      deleteOption.style.cssText = `
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+        color: #d32f2f;
+      `;
+
+      deleteOption.addEventListener("click", () => {
+        deleteCurrentImage();
+        document.body.removeChild(contextMenu);
+      });
+
+      deleteOption.addEventListener("mouseenter", () => {
+        deleteOption.style.backgroundColor = "#ffebee";
+      });
+
+      deleteOption.addEventListener("mouseleave", () => {
+        deleteOption.style.backgroundColor = "transparent";
+      });
+
       contextMenu.appendChild(exportOption);
+      contextMenu.appendChild(deleteOption);
       document.body.appendChild(contextMenu);
 
       // Remove context menu when clicking elsewhere
@@ -206,6 +250,11 @@ function setupEventListeners() {
           e.preventDefault();
           exportCurrentImage();
         }
+        break;
+      case "Delete":
+      case "Backspace":
+        e.preventDefault();
+        deleteCurrentImage();
         break;
     }
   });
@@ -516,6 +565,79 @@ function closeGallery() {
   }
 }
 
+// Add this function to handle image deletion
+function deleteCurrentImage() {
+  console.log("Delete button clicked");
+  console.log("Gallery data length:", galleryData.length);
+  console.log("Current image index:", currentImage);
+
+  if (galleryData.length === 0) {
+    console.log("No gallery data available");
+    alert("No images to delete");
+    return;
+  }
+
+  const currentItem = galleryData[currentImage];
+  console.log("Current item:", currentItem);
+
+  if (!currentItem || !currentItem.RECID) {
+    console.log("No current item or RECID available", currentItem);
+    alert("No valid image to delete - missing record ID");
+    return;
+  }
+
+  // Show confirmation dialog
+  const serial = currentItem.title || "Unknown";
+  const location = currentItem.capDesc || "Unknown location";
+  const confirmMessage = `Are you sure you want to delete this image?\n\nUnit Serial: ${serial}\nLocation: ${location}\nRecord ID: ${currentItem.RECID}`;
+
+  if (!confirm(confirmMessage)) {
+    console.log("User cancelled deletion");
+    return;
+  }
+
+  try {
+    console.log("Attempting to delete image with RECID:", currentItem.RECID);
+
+    // Prepare data to send to FileMaker
+    const deleteData = {
+      RECID: currentItem.RECID,
+      title: currentItem.title || "",
+      location: currentItem.capDesc || "",
+      serviceId: currentItem.ServiceID || "",
+      action: "delete",
+    };
+
+    console.log("Delete data prepared:", deleteData);
+
+    // Call FileMaker script to delete the record
+    if (window.FileMaker && typeof window.FileMaker.PerformScript === "function") {
+      try {
+        console.log("Calling FileMaker delete script");
+
+        // Call FileMaker script to handle the deletion
+        // You'll need to create this script in FileMaker
+        window.FileMaker.PerformScript("Delete Image Record", JSON.stringify(deleteData));
+        console.log("FileMaker delete script called successfully");
+
+        // Optional: Show success message
+        alert(`Image deletion request sent to FileMaker\nRecord ID: ${currentItem.RECID}`);
+
+        return;
+      } catch (fmError) {
+        console.error("FileMaker delete script failed:", fmError);
+        alert(`FileMaker delete script failed: ${fmError.message}\n\nPlease ask your FileMaker developer to create a script called:\n"Delete Image Record"\n\nThat accepts a JSON parameter with RECID for deletion.`);
+      }
+    } else {
+      console.log("FileMaker not available");
+      alert(`FileMaker integration not available.\n\nTo enable image deletion, ask your FileMaker developer to create a script called:\n"Delete Image Record"\n\nRecord ID to delete: ${currentItem.RECID}`);
+    }
+  } catch (error) {
+    console.error("Delete operation failed:", error);
+    alert(`Delete operation failed: ${error.message}`);
+  }
+}
+
 // Add this function to handle image export
 function exportCurrentImage() {
   console.log("Export button clicked"); // Debug log
@@ -647,9 +769,11 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
     initGallery();
 
-    // Double-check export button setup
+    // Double-check export and delete button setup
     const exportBtn = document.querySelector(".export-btn");
+    const deleteBtn = document.querySelector(".delete-btn");
     console.log("Export button check after init:", exportBtn);
+    console.log("Delete button check after init:", deleteBtn);
 
     if (!exportBtn) {
       console.error("Export button still not found after DOM load!");
@@ -668,11 +792,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }, 1000);
     }
+
+    if (!deleteBtn) {
+      console.error("Delete button still not found after DOM load!");
+      // Try to find it manually
+      setTimeout(() => {
+        const deleteBtnRetry = document.querySelector(".delete-btn");
+        console.log("Retry finding delete button:", deleteBtnRetry);
+        if (deleteBtnRetry) {
+          console.log("Found delete button on retry, setting up listener");
+          deleteBtnRetry.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("Delete button clicked (retry setup)!");
+            deleteCurrentImage();
+          });
+        }
+      }, 1000);
+    }
   }, 100);
 });
 
-// Make export function available globally for testing
+// Make export and delete functions available globally for testing
 window.testExport = exportCurrentImage;
+window.testDelete = deleteCurrentImage;
 
 // Manual setup function for debugging
 window.setupExportButton = function () {
@@ -697,5 +840,31 @@ window.setupExportButton = function () {
   } else {
     console.log("Export button not found in manual setup");
     return "Export button not found";
+  }
+};
+
+// Manual setup function for delete button
+window.setupDeleteButton = function () {
+  console.log("Manual delete button setup...");
+  const btn = document.querySelector(".delete-btn");
+  console.log("Found delete button:", btn);
+
+  if (btn) {
+    // Remove any existing listeners
+    btn.replaceWith(btn.cloneNode(true));
+    const newBtn = document.querySelector(".delete-btn");
+
+    newBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Manual delete button clicked!");
+      deleteCurrentImage();
+    });
+
+    console.log("Manual delete button setup complete");
+    return "Delete button setup successfully";
+  } else {
+    console.log("Delete button not found in manual setup");
+    return "Delete button not found";
   }
 };

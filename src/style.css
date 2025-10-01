@@ -26,7 +26,7 @@ body {
 .export-btn {
   position: absolute;
   top: 20px;
-  right: 70px; /* Position next to close button */
+  right: 120px; /* Moved left to make room for delete button */
   background: rgba(0, 0, 0, 0.7);
   border: none;
   border-radius: 50%;
@@ -37,7 +37,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
   z-index: 1001;
 }
 
@@ -47,6 +47,34 @@ body {
 }
 
 .export-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.delete-btn {
+  position: absolute;
+  top: 20px;
+  right: 70px; /* Position next to export button */
+  background: rgba(139, 0, 0, 0.7); /* Dark red background */
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 1001;
+}
+
+.delete-btn:hover {
+  background: rgba(139, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.delete-btn svg {
   width: 20px;
   height: 20px;
 }
