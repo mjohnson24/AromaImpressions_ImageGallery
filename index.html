@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0" />
+	<title>Service Gallery</title>
+	<style>
+		@import "./src/style.css";
+	</style>
+</head>
+
+<body>
+	<div class="gallery-container">
+		<!-- Close button -->
+		<button class="close-btn">&times;</button>
+
+		<!-- Image counter -->
+		<div class="image-counter">1/12</div>
+		<div id="errorMessage"></div>
+
+		<!-- Navigation arrows -->
+		<button class="nav-arrow nav-arrow-left">&lt;</button>
+		<button class="nav-arrow nav-arrow-right">&gt;</button>
+
+		<!-- Main image display -->
+		<div class="main-image-container">
+			<div class="image-placeholder">
+				<img id="main-image"
+					 src=""
+					 alt="Service Image" />
+				<div class="placeholder-icon"></div>
+			</div>
+
+			<!-- Image info panel -->
+			<div class="image-info">
+				<div class="info-item">Unit Serial Number</div>
+				<div class="info-item">Unit Location</div>
+				<div class="info-item">REC ID</div>
+			</div>
+		</div>
+
+		<!-- Thumbnail navigation -->
+		<div class="thumbnail-container">
+			<button class="thumbnail-nav thumbnail-nav-first">&lt;&lt;</button>
+			<button class="thumbnail-nav thumbnail-nav-left">&lt;</button>
+
+			<div class="thumbnails"></div>
+
+			<button class="thumbnail-nav thumbnail-nav-right">&gt;</button>
+			<button class="thumbnail-nav thumbnail-nav-last">&gt;&gt;</button>
+		</div>
+	</div>
+
+	<script type="module">
+		import "./src/index.js";
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,53 @@
+.DS_Store
+/node_modules/
+.vscode
+
+# Operating System Files
+.DS_Store
+.localized
+.Trashes
+._*
+.Spotlight-V100
+.fseventsd
+.DocumentRevisions-V100
+.TemporaryItems
+
+# IDE/Editor Files
+.idea/
+.vscode/
+*.swp
+*~
+
+# Build/Dependency Directories
+node_modules/
+node_modules
+build/
+dist/
+out/
+target/
+bin/
+/.react-router/
+/build/
+
+# Compiled Files # Java compiled files
+*.pyc
+*.o
+*.a
+*.so
+*.dll
+*.exe
+
+# Logs and Temporary Files
+*.log
+*.tmp
+temp/
+
+# Sensitive Information (adjust as needed)
+.env
+*.key
+*.pem
+
+# Other common ignore patterns
+.gitattributes
+.gitkeep
+.vscode
