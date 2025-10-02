@@ -559,6 +559,7 @@ function deleteCurrentImage() {
       title: currentItem.title || "",
       location: currentItem.capDesc || "",
       serviceId: currentItem.ServiceID || "",
+      clientId: currentItem.ClientID || "",
       action: "delete",
     };
 
