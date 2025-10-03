@@ -1,4 +1,8 @@
-// Gallery functionality using functions
+// Gallery UI logic
+// -----------------
+// This file controls the UI: thumbnails, main image, navigation, export/delete,
+// and keyboard shortcuts. It renders from a data array (galleryData) passed in
+// from index.js via setGalleryData().
 let currentImage = 0;
 let totalImages = 0; // will be set from galleryData
 let visibleThumbnails = 8; // Number of thumbnails to show at once
@@ -7,8 +11,26 @@ let lastImageIndex = 0; // Add a variable to track the last image index for anim
 
 // galleryData holds the array of items used by the gallery UI. It can be set
 // by FileMaker via window.loadWidget or during local testing.
+/**
+ * The array of items currently displayed by the gallery.
+ * Each item shape:
+ * {
+ *   src: string,           // image URL or data URI
+ *   thumb: string,         // thumbnail URL (can be same as src)
+ *   type: "image",
+ *   title: string,         // Unit Serial Number
+ *   capDesc: string,       // Unit Location
+ *   ServiceID: string,
+ *   RECID: string,
+ *   ClientID: string
+ * }
+ */
 let galleryData = [];
 
+/**
+ * Initialize gallery once DOM is ready: wire up listeners and, if data is
+ * already present, render the first view of the gallery.
+ */
 function initGallery() {
   setupEventListeners();
   // Only update UI elements if we have data
@@ -22,6 +44,10 @@ function initGallery() {
   }
 }
 
+/**
+ * Replace gallery data and fully re-render the UI.
+ * @param {Array<object>} data - Non-empty array of gallery items
+ */
 export function setGalleryData(data) {
   if (!Array.isArray(data) || data.length === 0) return;
   galleryData = data;
@@ -39,6 +65,10 @@ export function setGalleryData(data) {
   updateThumbnailDisplay();
 }
 
+/**
+ * Attach all UI event listeners: buttons, arrows, context menu, keyboard,
+ * and thumbnail navigation controls.
+ */
 function setupEventListeners() {
   // Export button
   const exportButton = document.querySelector(".export-btn");
@@ -244,9 +274,11 @@ function setupEventListeners() {
   });
 }
 
+// Cache frequently used navigation arrows
 const navArrowLeft = document.querySelector(".nav-arrow-left");
 const navArrowRight = document.querySelector(".nav-arrow-right");
 
+/** Jump to first image (index 0) */
 function firstImage() {
   if (currentImage > 0) {
     currentImage = 0;
@@ -254,6 +286,7 @@ function firstImage() {
   }
 }
 
+/** Move to previous image if possible */
 function previousImage() {
   if (currentImage > 0) {
     currentImage--;
@@ -261,6 +294,7 @@ function previousImage() {
   }
 }
 
+/** Move to next image if possible */
 function nextImage() {
   if (currentImage < totalImages - 1) {
     currentImage++;
@@ -268,6 +302,7 @@ function nextImage() {
   }
 }
 
+/** Jump to last image */
 function lastImage() {
   if (currentImage < totalImages - 1) {
     currentImage = totalImages - 1;
@@ -275,11 +310,13 @@ function lastImage() {
   }
 }
 
+/** Go to a specific image by index */
 function goToImage(index) {
   currentImage = index;
   updateGallery();
 }
 
+/** Recompute and update all dependent UI for the current image */
 function updateGallery() {
   updateImageCounter();
   updateActiveThumbnail();
@@ -289,6 +326,10 @@ function updateGallery() {
   ensureActiveThumbnailVisible();
 }
 
+/**
+ * Update the main image source and play a directional slide animation
+ * based on whether the user navigated forward or backward.
+ */
 function updateMainImageBackground() {
   const imagePlaceholder = document.querySelector("#main-image");
   if (!imagePlaceholder) return;
@@ -336,17 +377,23 @@ function updateMainImageBackground() {
   }, 300);
 }
 
+/** Update the counter text (e.g., 3/10) */
 function updateImageCounter() {
   const counter = document.querySelector(".image-counter");
   counter.textContent = `${currentImage + 1}/${totalImages}`;
 }
 
+/** Toggle .active on the current thumbnail */
 function updateActiveThumbnail() {
   document.querySelectorAll(".thumbnail").forEach((thumbnail, index) => {
     thumbnail.classList.toggle("active", index === currentImage);
   });
 }
 
+/**
+ * Fill the info panel with Unit Serial, Unit Location, REC ID, and Client ID
+ * for the current item.
+ */
 function updateImageInfo() {
   const infoItems = document.querySelectorAll(".info-item");
   const item = galleryData[currentImage] || {};
@@ -377,6 +424,7 @@ function updateImageInfo() {
   }
 }
 
+/** Build/refresh the thumbnails strip from galleryData */
 function generateThumbnails() {
   const thumbnailsContainer = document.querySelector(".thumbnails");
   if (!thumbnailsContainer) return;
@@ -420,6 +468,7 @@ function generateThumbnails() {
   }
 }
 
+/** Show only the current window of thumbnails and hide the rest */
 function updateThumbnailDisplay() {
   const thumbnails = document.querySelectorAll(".thumbnail");
   const startIndex = thumbnailScrollPosition;
@@ -441,6 +490,7 @@ function updateThumbnailDisplay() {
   updateThumbnailNavButtons();
 }
 
+/** Enable/disable thumbnail paging buttons based on current position */
 function updateThumbnailNavButtons() {
   const firstBtn = document.querySelector(".thumbnail-nav-first");
   const leftBtn = document.querySelector(".thumbnail-nav-left");
@@ -468,6 +518,7 @@ function updateThumbnailNavButtons() {
   }
 }
 
+/** Page thumbnails window left by `visibleThumbnails` */
 function scrollThumbnailsLeft() {
   if (thumbnailScrollPosition > 0) {
     thumbnailScrollPosition = Math.max(0, thumbnailScrollPosition - visibleThumbnails);
@@ -475,6 +526,7 @@ function scrollThumbnailsLeft() {
   }
 }
 
+/** Page thumbnails window right by `visibleThumbnails` */
 function scrollThumbnailsRight() {
   const maxScrollPosition = Math.max(0, totalImages - visibleThumbnails);
   if (thumbnailScrollPosition < maxScrollPosition) {
@@ -483,6 +535,7 @@ function scrollThumbnailsRight() {
   }
 }
 
+/** Ensure the active thumbnail is within the visible paging window */
 function ensureActiveThumbnailVisible() {
   const activeIndex = currentImage;
   const currentStart = thumbnailScrollPosition;
@@ -499,6 +552,7 @@ function ensureActiveThumbnailVisible() {
 }
 
 // Function to change the number of visible thumbnails
+/** Set how many thumbnails to show (clamped) and reset paging */
 function setVisibleThumbnails(count) {
   visibleThumbnails = Math.max(1, Math.min(count, totalImages));
   thumbnailScrollPosition = 0; // Reset scroll position
@@ -506,6 +560,12 @@ function setVisibleThumbnails(count) {
 }
 
 // Safety helpers for calling back into FileMaker
+/**
+ * Helper to call a FileMaker script.
+ * @param {string} scriptName
+ * @param {string} param JSON string
+ * @returns {boolean}
+ */
 function callFMScript(scriptName, param) {
   try {
     if (window.FileMaker && typeof window.FileMaker.PerformScript === "function") {
@@ -522,6 +582,7 @@ function callFMScript(scriptName, param) {
   }
 }
 
+/** Ask FileMaker to commit/close the window */
 function closeGallery() {
   // Change this to your receiving FM script name:
   const ok = callFMScript("UNIV: Committ/Close Window/Exit", "");
@@ -532,6 +593,10 @@ function closeGallery() {
 }
 
 // Add this function to handle image deletion
+/**
+ * Request deletion of the current image record via FileMaker.
+ * Exits early if there is no data or the current item has no RECID.
+ */
 function deleteCurrentImage() {
   if (galleryData.length === 0) {
     return;
@@ -583,6 +648,10 @@ function deleteCurrentImage() {
 }
 
 // Add this function to handle image export
+/**
+ * Export the current image: prefer FileMaker script for data URLs; fallback to
+ * browser download for regular URLs. Also sanitizes filename for FM safety.
+ */
 function exportCurrentImage() {
   if (galleryData.length === 0) {
     return;
@@ -677,6 +746,7 @@ function exportCurrentImage() {
 }
 
 // Initialize the gallery when the page loads
+// Bootstraps the gallery after the DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   // Add a small delay to ensure everything is rendered
   setTimeout(() => {
@@ -781,6 +851,7 @@ window.testExport = exportCurrentImage;
 window.testDelete = deleteCurrentImage;
 
 // Manual setup function for debugging
+// Utility to rebind export button (for debugging in dev tools)
 window.setupExportButton = function () {
   const btn = document.querySelector(".export-btn");
 
@@ -802,6 +873,7 @@ window.setupExportButton = function () {
 };
 
 // Manual setup function for delete button
+// Utility to rebind delete button (for debugging in dev tools)
 window.setupDeleteButton = function () {
   const btn = document.querySelector(".delete-btn");
 
@@ -823,27 +895,32 @@ window.setupDeleteButton = function () {
 };
 
 // Manual thumbnail navigation testing functions
+// Debug helper: go to first thumbnail page
 window.testThumbnailFirst = function () {
   firstThumbnailPage();
   return "First thumbnail test executed";
 };
 
+// Debug helper: page thumbnails left
 window.testThumbnailLeft = function () {
   scrollThumbnailsLeft();
   return "Left thumbnail test executed";
 };
 
+// Debug helper: page thumbnails right
 window.testThumbnailRight = function () {
   scrollThumbnailsRight();
   return "Right thumbnail test executed";
 };
 
+// Debug helper: go to last thumbnail page
 window.testThumbnailLast = function () {
   lastThumbnailPage();
   return "Last thumbnail test executed";
 };
 
 // Function to manually trigger button clicks
+// Debug helper: simulate some button clicks and log availability
 window.testButtonClicks = function () {
   const firstBtn = document.querySelector(".thumbnail-nav-first");
   const leftBtn = document.querySelector(".thumbnail-nav-left");
@@ -869,6 +946,7 @@ window.testButtonClicks = function () {
 };
 
 // Force setup thumbnail navigation buttons
+// Debug helper: forcibly rebind thumbnail nav buttons
 window.forceSetupThumbnailButtons = function () {
   const firstBtn = document.querySelector(".thumbnail-nav-first");
   const leftBtn = document.querySelector(".thumbnail-nav-left");
