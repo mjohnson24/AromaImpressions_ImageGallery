@@ -919,32 +919,6 @@ window.testThumbnailLast = function () {
   return "Last thumbnail test executed";
 };
 
-// Function to manually trigger button clicks
-// Debug helper: simulate some button clicks and log availability
-window.testButtonClicks = function () {
-  const firstBtn = document.querySelector(".thumbnail-nav-first");
-  const leftBtn = document.querySelector(".thumbnail-nav-left");
-  const rightBtn = document.querySelector(".thumbnail-nav-right");
-  const lastBtn = document.querySelector(".thumbnail-nav-last");
-
-  console.log("Found buttons:", {
-    first: !!firstBtn,
-    left: !!leftBtn,
-    right: !!rightBtn,
-    last: !!lastBtn,
-  });
-
-  if (leftBtn) {
-    leftBtn.click();
-  }
-
-  if (rightBtn) {
-    rightBtn.click();
-  }
-
-  return "Manual button click tests completed";
-};
-
 // Force setup thumbnail navigation buttons
 // Debug helper: forcibly rebind thumbnail nav buttons
 window.forceSetupThumbnailButtons = function () {
