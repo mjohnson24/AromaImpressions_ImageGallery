@@ -896,28 +896,28 @@ window.setupDeleteButton = function () {
 
 // Manual thumbnail navigation testing functions
 // Debug helper: go to first thumbnail page
-window.testThumbnailFirst = function () {
-  firstThumbnailPage();
-  return "First thumbnail test executed";
-};
+// window.testThumbnailFirst = function () {
+//   firstThumbnailPage();
+//   return "First thumbnail test executed";
+// };
 
 // Debug helper: page thumbnails left
-window.testThumbnailLeft = function () {
-  scrollThumbnailsLeft();
-  return "Left thumbnail test executed";
-};
+// window.testThumbnailLeft = function () {
+//   scrollThumbnailsLeft();
+//   return "Left thumbnail test executed";
+// };
 
 // Debug helper: page thumbnails right
-window.testThumbnailRight = function () {
-  scrollThumbnailsRight();
-  return "Right thumbnail test executed";
-};
+// window.testThumbnailRight = function () {
+//   scrollThumbnailsRight();
+//   return "Right thumbnail test executed";
+// };
 
 // Debug helper: go to last thumbnail page
-window.testThumbnailLast = function () {
-  lastThumbnailPage();
-  return "Last thumbnail test executed";
-};
+// window.testThumbnailLast = function () {
+//   lastThumbnailPage();
+//   return "Last thumbnail test executed";
+// };
 
 // Force setup thumbnail navigation buttons
 // Debug helper: forcibly rebind thumbnail nav buttons
