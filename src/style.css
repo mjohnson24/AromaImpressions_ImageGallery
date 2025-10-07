@@ -16,7 +16,8 @@ body {
   height: 100vh;
   /* background: linear-gradient(135deg, #5a8c8e, #5a8c8e); */
   /* background: linear-gradient(135deg, #7d9cb6, #4f7696); */
-  background-color: #7d9cb6;
+  /* background-color: #7d9cb6; */
+  background-color: #a7adba;
   display: flex;
   flex-direction: column;
   justify-content: center;
