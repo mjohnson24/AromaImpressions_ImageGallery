@@ -847,8 +847,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Make export and delete functions available globally for testing
-window.testExport = exportCurrentImage;
-window.testDelete = deleteCurrentImage;
+// window.testExport = exportCurrentImage;
+// window.testDelete = deleteCurrentImage;
 
 // Manual setup function for debugging
 // Utility to rebind export button (for debugging in dev tools)
