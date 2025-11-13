@@ -166,9 +166,9 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   /* Increased size so the big image displays larger */
   max-width: 92%;
-  max-height: 84%;
+  max-height: 100%;
   /* Reserve space below the main image so the thumbnail strip doesn't overlap */
-  margin-bottom: 120px;
+  margin-bottom: 100px;
   display: flex;
   flex-direction: column;
 }
@@ -178,7 +178,7 @@ body {
   /* height: 450px; */
   /* Make the placeholder (big image viewport) larger on desktops */
   width: 1000px;
-  height: 650px;
+  height: 750px;
   background-color: #ddd;
   background-size: 30px 30px;
   display: flex;
