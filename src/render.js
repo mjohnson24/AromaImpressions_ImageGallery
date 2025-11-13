@@ -23,14 +23,14 @@ export function updateImageInfo() {
     const itemDesc = item.capDesc ? item.capDesc : "";
     infoItems[1].innerHTML = `<span>Unit Location:</span> ${itemDesc}`;
   }
-  if (infoItems[2]) {
-    const itemServiceID = item.ServiceID ? item.ServiceID : "";
-    infoItems[2].innerHTML = `<span>REC ID:</span>  ${itemServiceID}`;
-  }
-  if (infoItems[3]) {
-    const itemClientID = item.ClientID ? item.ClientID : "";
-    infoItems[3].innerHTML = `<span>Client ID:</span>  ${itemClientID}`;
-  }
+  //   if (infoItems[2]) {
+  //     const itemServiceID = item.ServiceID ? item.ServiceID : "";
+  //     infoItems[2].innerHTML = `<span>REC ID:</span>  ${itemServiceID}`;
+  //   }
+  //   if (infoItems[3]) {
+  //     const itemClientID = item.ClientID ? item.ClientID : "";
+  //     infoItems[3].innerHTML = `<span>Client ID:</span>  ${itemClientID}`;
+  //   }
 }
 
 export function updateMainImageBackground() {
